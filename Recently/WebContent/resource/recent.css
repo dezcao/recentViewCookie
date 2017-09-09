@@ -1,0 +1,30 @@
+@charset "UTF-8";
+.container {
+    width: 100%;
+}
+.container div img {
+    width: 100px;
+    height: 100px;
+    float: left;
+    border: 1px solid green;
+}
+
+.recentView {
+    display: inline-block;
+    width: 100%;
+}
+.recentView div {
+    border: 1px solid red;
+    width: 50px;
+    height: 50px;
+}
+
+#recentBanner {
+    height: 157px;
+    overflow: hidden;
+}
+
+#floater {
+    width: 100%;
+    display: table;
+}
