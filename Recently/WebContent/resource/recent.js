@@ -1,20 +1,37 @@
 /**
  * 
- */
-    /*
-     * 
-     * 응용코드
-     */
+ */ 
+    // ------------------------------------------------------------------------------------------------------- *
+    // ------------------------------------ WELCOME JAVASCRIPT USER LAND ------------------------------------- *
+    // ------------------------------------------------------------------------------------------------------- *
 
-    // 쿠키 생성
+    /*
+     * 유저 호출 함수
+     */
+    
+    // 쿠키 생성 호출 - 상세페이지에 들어왔다면, 필수값을 이용해서 자동 로딩되어야 한다.
     function setCookiePlus(cName, cValue, imgUrl, cDay){
-        
-        //있는 쿠키를 가져온다.
-        var cookieValue  = getCookiePlus("recentView");
-        
+        cookieMaker(cName, cookieValueBaker("recentView", cValue, ";", 9), cDay);
+    }
+    
+    // 머리가 안굴러 갑니다..... 아아..
+    function slider(step) {
+        previewBlinder(numberSetter(step));
+    }
+
+    // ------------------------------------------------------------------------------------------------------- *
+    // -------------------------------------- JAVASCRIPT FACTORY LAND ---------------------------------------- *
+    // ------------------------------------------------------------------------------------------------------- *
+    /*
+     * 작업 함수
+     */
+    
+    //쿠키를 파싱하여, 쿠키에 새로 설장할 값(cValue)과 비교하여 유니크 배열을 만든후 쿠키에 설정할 값으로 재작성한다.
+    function cookieValueBaker(cookieName, cValue, delimiter, maxCount) {
+        var cookieValue  = getCookiePlus(cookieName);
         //유니크 배열을 만든다.
         if (cookieValue) {
-            var cookieArray = cookieValue.split(";");
+            var cookieArray = cookieValue.split(delimiter);
             let uniqCookieArray = [];
             
             while(cookieArray.length != 0) {
@@ -23,11 +40,14 @@
             }
             
             uniqCookieArray.unshift(cValue); //맨 앞에 이번 값을 담는다.
-            uniqCookieArray.splice(9, uniqCookieArray.length); //9개만 남긴다.
-            cValue = uniqCookieArray.join(";");
+            uniqCookieArray.splice(maxCount, uniqCookieArray.length); //쿠키에 설정할 갯수를 maxCount로.
+            cValue = uniqCookieArray.join(delimiter);
         }
-        
-        //쿠키를 설정한다.
+        return cValue;
+    }
+    
+    //쿠키를 생성한다.
+    function cookieMaker(cName, cValue, cDay) {
         var expire = new Date();
         expire.setDate(expire.getDate() + cDay);
         cookies = cName + '=' + escape(cValue) + '; path=/ '; // 한글 깨짐을 막기위해 escape(cValue)를 합니다.
@@ -35,17 +55,50 @@
         document.cookie = cookies;
     }
     
-    //페이지 로딩될때 마다 쿠키 값을 파싱한다. 보고있는 당시에 해당 화면에서 붙여줘도 큰 효과는 없고 공수는 많다.
-    function loadPreview() {
+    // 쿠키 가져오기
+    function getCookiePlus(cName) {
+        cName = cName + '=';        
+        var cookieData = document.cookie;
+        var start = cookieData.indexOf(cName);
+        var cValue = '';
+        if(start != -1){
+            start += cName.length;
+            var end = cookieData.indexOf(';', start);
+            if(end == -1) end = cookieData.length;
+            cValue = cookieData.substring(start, end);
+        }
+        return unescape(cValue);
+    }
+    
+    // 미리보기 표시숫자 제어
+    function numberSetter(step) {
+        var now = document.getElementById("now").innerHTML;
+        var total = document.getElementById("total").innerHTML;
+        if ((now == 1 && step == -1) || (now == total && step == 1)) {return;}
+        var resultNumber = now*1 + step;
+        document.getElementById("now").innerHTML = resultNumber;
+        return resultNumber;
+    }
+    
+    //미리보기 조건에 맞춰 슬라이드를 숨긴다.
+    function previewBlinder(resultNumber) {
+        var recentViews = document.querySelectorAll("#recentView div");
         
-        //쿠키 가져온다.
-        var cookieValue  = getCookiePlus("recentView");
+        for (var i = 0; i < resultNumber*3; i++) { //3,6,9
+            recentViews[i].style.display = 'none';
+        }
         
-        //쿠키가 없으면 나간다.
-        if (!cookieValue) return;
-        
+        //i = 0,3,6
+        for (var i = (resultNumber*3-3); i < (resultNumber*3); i++) {
+            recentViews[i].style.display = 'block';
+        }
+    }
+    
+    //미리보기용 HTML을 만든다.
+    function makePreviewHTML(cookieValue) {
         //쿠키를 배열로 만든다.
         var cookieArray = cookieValue.split(";");
+        
         var cnt = cookieArray.length;
         
         //미리보기 HTML을 만든다.
@@ -66,64 +119,27 @@
                 newPreviewHTML = newPreviewHTML + emptyPreviewHTML;
             }
         }
+        return newPreviewHTML;
+    }
+    
+    //페이지 로딩될때 마다 쿠키 값을 파싱한다. 보고있는 당시에 해당 화면에서 붙여줘도 큰 효과는 없고 공수는 많다.
+    function loadPreview() {
         
+        //쿠키 가져온다.
+        var cookieValue  = getCookiePlus("recentView");
+        var cookieArray = cookieValue.split(";");
+        var cnt = cookieArray.length;
         
-        //붙인다.
-        var recentViewDiv = document.querySelector("#recentView");
+        //쿠키가 없으면 나간다.
+        if (!cookieValue) return;
         
-        recentViewDiv.innerHTML = newPreviewHTML;
+        //HTML을 만들어 붙인다.
+        document.querySelector("#recentView").innerHTML = makePreviewHTML(cookieValue);
         
         //미리보기 갯수를 써준다.
         document.getElementById("total").innerHTML = (cnt < 4) ? 1 : (cnt < 7) ? 2 : 3;
         
     }
     
-    // 쿠키 가져오기
-    function getCookiePlus(cName) {
-        cName = cName + '=';        
-        var cookieData = document.cookie;
-        var start = cookieData.indexOf(cName);
-        var cValue = '';
-        if(start != -1){
-            start += cName.length;
-            var end = cookieData.indexOf(';', start);
-            if(end == -1) end = cookieData.length;
-            cValue = cookieData.substring(start, end);
-        }
-        return unescape(cValue);
-    }
-    
-    // 머리가 안굴러 갑니다..... 아아..
-    function slider(step) {
-        // 표시 숫자를 제어 한다.
-        var now = document.getElementById("now").innerHTML;
-        var total = document.getElementById("total").innerHTML;
-        if ((now == 1 && step == -1) || (now == total && step == 1)) {return;}
-        var resultNumber = now*1 + step;
-        document.getElementById("now").innerHTML = resultNumber;
-        
-        //슬라이드를 숨긴다.
-        var recentViews = document.querySelectorAll("#recentView div");
-        
-        for (var i = 0; i < resultNumber*3; i++) { //3,6,9
-            recentViews[i].style.display = 'none';
-        }
-        
-        if (resultNumber == 1) {
-            for (var i = 0; i < 3; i++) {
-                recentViews[i].style.display = 'block';
-            }
-        }
-        if (resultNumber == 2) {
-            for (var i = 3; i < 6; i++) {
-                recentViews[i].style.display = 'block';
-            }
-        }
-        if (resultNumber == 3) {
-            for (var i = 6; i < 9; i++) {
-                recentViews[i].style.display = 'block';
-            }
-        }
-    }
-    
     loadPreview();
+    
